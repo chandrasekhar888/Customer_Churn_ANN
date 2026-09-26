@@ -1,375 +1,288 @@
-IMDb Movie Review Sentiment Analysis using SimpleRNN
 
-A Deep Learning project that uses an Embedding layer and SimpleRNN to classify IMDb movie reviews as positive or negative.
+# IMDb Movie Review Sentiment Analysis using RNN
 
-The trained model is integrated with a Streamlit application for interactive sentiment prediction.
+A Deep Learning project that predicts whether an IMDb movie review is **Positive** or **Negative** using a Simple Recurrent Neural Network (RNN).
 
-Quick Revision — Complete Workflow
+## Quick Revision — Complete Workflow
 
-IMDb Dataset
-     ↓
-Integer Encoding
-     ↓
-Padding
-     ↓
-Embedding
-     ↓
-SimpleRNN
-     ↓
-Dense + Sigmoid
-     ↓
-Training
-     ↓
-Evaluation
-     ↓
-Save .h5 Model
-     ↓
-Load Model
-     ↓
-Streamlit
-     ↓
-User Review
-     ↓
-Preprocessing
-     ↓
-Prediction
-     ↓
-Positive / Negative
-
-1. IMDb Dataset
-
-The project uses the IMDb movie review dataset provided by Keras.
-
-from tensorflow.keras.datasets import imdb
-
-The vocabulary limit used in the project is:
-
-max_features = 10000
-
-The IMDb dataset contains 25,000 training reviews and 25,000 testing reviews.
-
-2. Integer Encoding
-
-A neural network cannot directly process raw text.
-
-"This movie was excellent"
+```text
+IMDb Movie Reviews
         ↓
+Text Preprocessing
+        ↓
+Tokenization / Word Index
+        ↓
+Integer Encoding
+        ↓
+Sequence Padding
+        ↓
+Embedding Layer
+        ↓
+SimpleRNN
+        ↓
+Dense Layer
+        ↓
+Sigmoid Output
+        ↓
+Model Training
+        ↓
+Model Evaluation
+        ↓
+Save Trained Model
+        ↓
+Streamlit Application
+        ↓
+User Review
+        ↓
+Same Preprocessing
+        ↓
+RNN Prediction
+        ↓
+Sentiment Score
+        ↓
+Positive / Negative
+1. Dataset
+
+The project uses the IMDb Movie Reviews dataset available through TensorFlow/Keras.
+
+The task is binary sentiment classification.
+
+0 → Negative
+1 → Positive
+
+The model uses a vocabulary of:
+
+MAX_FEATURES = 10000
+
+and a maximum sequence length of:
+
+MAX_LEN = 500
+2. Text Preprocessing
+
+Raw movie reviews are text, so they must be converted into numerical sequences before being passed to the RNN.
+
+Word Index
+
+The IMDb dataset provides a word-to-integer mapping.
+
+Word
+ ↓
+Integer ID
+
+Example:
+
+"movie" → numerical ID
+"good"  → numerical ID
+Unknown Words
+
+Words that are not available in the IMDb vocabulary are represented using the unknown-word token.
+
+Unknown Word
+      ↓
+   Token 2
+Sequence Encoding
+
+The words in a review are converted into a sequence of integer IDs.
+
+Review
+   ↓
+Words
+   ↓
 Integer IDs
-        ↓
-[integer, integer, integer, ...]
+Padding
 
-IMDb provides a mapping between words and integer IDs.
+Different reviews have different lengths.
 
-3. Word Index
+Review 1 → 100 tokens
+Review 2 → 300 tokens
+Review 3 → 500 tokens
 
-word_index = imdb.get_word_index()
+The model requires a fixed sequence length.
 
-reverse_word_index = {
-    value: key for key, value in word_index.items()
-}
+MAX_LEN = 500
 
-The reverse mapping is useful for inspecting and decoding encoded reviews.
+Therefore, shorter sequences are padded and longer sequences are truncated.
 
-4. Padding
+3. Embedding Layer
 
-Reviews have different lengths.
+The integer sequences are passed into an Embedding layer.
 
-The project uses:
+Integer Sequence
+       ↓
+Embedding Layer
+       ↓
+Dense Vector Representation
 
-max_len = 500
+The Embedding layer learns numerical representations of words during training.
 
-Padding is performed with:
-
-sequence.pad_sequences(
-    X_train,
-    maxlen=max_len
-)
-
-After padding:
-
-X_train → (25000, 500)
-X_test  → (25000, 500)
-
-Shorter sequences receive padding values and longer sequences are truncated to the selected maximum length.
-
-5. Embedding Layer
-
-Integer word IDs are converted into dense vectors.
-
-The project uses:
-
-Embedding(
-    input_dim=10000,
-    output_dim=10,
-    input_length=500
-)
-
-Therefore one word ID becomes a 10-dimensional vector.
-
-A sequence of 500 tokens becomes:
-
-(500,) → (500, 10)
-
-The embedding representations are learned during training.
-
-6. SimpleRNN
-
-The embedded sequence is passed to:
-
-SimpleRNN(5)
-
-The RNN processes the sequence step by step and maintains a hidden state carrying information from previous time steps.
-
-The project uses 5 hidden units.
-
-The output shape is:
-
-(None, 5)
-
-None represents the batch size.
-
-7. Dense + Sigmoid
-
-The RNN output is passed to:
-
-Dense(1, activation='sigmoid')
-
-There is one output neuron because this is binary classification.
-
-Sigmoid produces a value between 0 and 1.
-
-0.85 → Positive
-0.20 → Negative
-
-The project uses a threshold of 0.5 for the final classification.
-
-8. Model Architecture
-
-Input Review
-     ↓
-500 Token IDs
-     ↓
-Embedding
-10000 vocabulary
-10-dimensional vectors
-     ↓
+4. RNN Architecture
+Input Sequence
+      ↓
+Embedding Layer
+      ↓
 SimpleRNN
-5 hidden units
-     ↓
-Dense
-1 neuron
+      ↓
+Dense Layer
+      ↓
 Sigmoid
-     ↓
-Prediction Probability
+      ↓
+Sentiment Score
 
-Model parameters:
+The SimpleRNN processes the sequence step by step while maintaining information from previous time steps.
 
-Embedding → 100,000
-SimpleRNN → 80
-Dense     → 6
-Total     → 100,086
+This allows the model to work with sequential text data.
 
-9. Model Compilation
+5. Important RNN Concepts
+Sequence
 
-model.compile(
-    optimizer='adam',
-    loss='binary_crossentropy',
-    metrics=['accuracy']
-)
+Text is sequential data where the order of words matters.
 
-Adam
-
-Adam is the optimizer. It updates model weights using gradients calculated from the loss.
-
-Binary Crossentropy
-
-Binary crossentropy is used for the two-class sentiment problem.
-
-Accuracy
-
-Accuracy measures the proportion of correctly classified predictions.
-
-10. Training
-
-history = model.fit(
-    X_train,
-    y_train,
-    epochs=5,
-    batch_size=64,
-    validation_split=0.2
-)
-
-Training flow:
-
-Input
-  ↓
-Embedding
-  ↓
-SimpleRNN
-  ↓
-Dense + Sigmoid
-  ↓
-Prediction
-  ↓
-Loss
-  ↓
-Backpropagation
-  ↓
-Adam updates weights
-
-11. Evaluation
-
-loss, accuracy = model.evaluate(
-    X_test,
-    y_test
-)
-
-This produces test loss and test accuracy using the separate test dataset.
-
-12. Saving the Model
-
-model.save("simple_rnn_imdb_relu.h5")
-
-The saved model can later be loaded without retraining:
-
-model = load_model("simple_rnn_imdb_relu.h5")
-
-13. New Review Preprocessing
-
-A new review must be converted into the same type of representation used during training.
-
-User Review
-     ↓
-Lowercase
-     ↓
-Split into words
-     ↓
-Word → IMDb ID
-     ↓
-Padding to 500
-     ↓
-Model
-
-The preprocessing used during prediction must be compatible with the preprocessing used during training.
-
-14. Prediction Function
-
-def predict_sentiment(review):
-    preprocessed_input = preprocess_text(review)
-
-    prediction = model.predict(
-        preprocessed_input
-    )
-
-    score = float(prediction[0][0])
-
-    sentiment = (
-        "Positive"
-        if score > 0.5
-        else "Negative"
-    )
-
-    return sentiment, score
-
-The model returns a probability score between 0 and 1.
-
-15. Streamlit Application
-
-User enters movie review
-          ↓
-Streamlit
-          ↓
-preprocess_text()
-          ↓
-Padding
-          ↓
-Saved RNN Model
-          ↓
-model.predict()
-          ↓
-Prediction Score
-          ↓
-Positive / Negative
-
-The Streamlit application is implemented in main.py.
-
-16. Project Structure
-
-rnnclassification/
-│
-├── embedding.ipynb
-├── main.py
-├── README.md
-├── requirements.txt
-│
-├── simple_rnn_imdb_relu.h5
-│
-└── .gitignore
-
-17. Technologies
-
-Python
-
-TensorFlow
-
-Keras
-
-NumPy
-
-Streamlit
-
-18. Important Concepts Learned
-
-Integer Encoding
-
-Converts words into numerical IDs.
-
-Padding
-
-Makes sequences the same length.
-
+Word 1 → Word 2 → Word 3 → Word 4
 Embedding
 
-Converts word IDs into dense vectors.
+Converts integer word IDs into learned dense vector representations.
 
 RNN
 
-Processes sequential information while maintaining a hidden state.
+Processes sequential information while maintaining information from previous time steps.
 
 Hidden State
 
-Carries information from previous time steps.
+The RNN carries information from previous time steps while processing the sequence.
 
 Sigmoid
 
-Produces a value between 0 and 1 for binary classification.
+The final output produces a value between 0 and 1.
 
-Binary Classification
+Score >= 0.5 → Positive
+Score < 0.5  → Negative
+6. Training
 
-The model chooses between Positive and Negative.
+During training:
 
-Loss
+Input Sequence
+      ↓
+Embedding
+      ↓
+SimpleRNN
+      ↓
+Prediction
+      ↓
+Loss Calculation
+      ↓
+Backpropagation
+      ↓
+Weight Updates
 
-Measures the difference between prediction and actual label.
+This process is repeated over batches and epochs.
 
-Optimizer
+7. Model Evaluation
 
-Updates model weights to reduce the loss.
+After training, the model is evaluated using the IMDb test dataset.
 
-19. Key Learning
+The main evaluation metrics are:
 
-The central idea is:
+Test Loss
+Test Accuracy
 
-Text
- ↓
-Numbers
- ↓
-Vectors
- ↓
-Sequence Processing
- ↓
-Classification
+The current model achieved:
 
-The Embedding layer converts integer word IDs into learned vector representations, and the SimpleRNN processes those representations as a sequence.
+Test Loss:     0.9308807253837585
+Test Accuracy: 0.5794000029563904
 
-The trained model can then be reused for inference through the Streamlit application.
+The current model is primarily a learning implementation and can be improved with further experimentation.
+
+8. Saving the Model
+
+The trained RNN model is saved so that it can be reused without retraining.
+
+simple_rnn_imdb_relu.h5
+
+The saved model is loaded by the Streamlit application.
+
+9. Prediction Workflow
+New Movie Review
+        ↓
+Text Preprocessing
+        ↓
+IMDb Word Encoding
+        ↓
+Sequence Padding
+        ↓
+Saved RNN Model
+        ↓
+model.predict()
+        ↓
+Sentiment Score
+        ↓
+Positive / Negative
+
+The model is not retrained during prediction.
+
+10. Streamlit Workflow
+User Review
+    ↓
+Streamlit
+    ↓
+Text Preprocessing
+    ↓
+IMDb Encoding
+    ↓
+Sequence Padding
+    ↓
+Saved RNN Model
+    ↓
+Prediction
+    ↓
+Sentiment Score
+    ↓
+Positive / Negative
+11. Project Structure
+rnnclassification/
+│
+├── main.py
+├── embedding.ipynb
+├── RNN_README.md
+├── requirements.txt
+└── simple_rnn_imdb_relu.h5
+12. Technologies
+Python
+TensorFlow
+Keras
+NumPy
+Streamlit
+Jupyter Notebook
+13. Key Learning
+
+The same preprocessing logic used during training must be followed during prediction.
+
+Training:
+
+IMDb Review
+     ↓
+Integer Encoding
+     ↓
+Padding
+     ↓
+Embedding
+     ↓
+SimpleRNN
+Prediction:
+
+New Review
+     ↓
+Same Integer Encoding
+     ↓
+Same Padding
+     ↓
+Saved RNN Model
+     ↓
+Prediction
+
+The important idea is:
+
+Training Preprocessing
+          =
+Prediction Preprocessing
+
+Otherwise, the model may receive input in a different format from what it learned during training.
