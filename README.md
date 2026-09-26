@@ -3,6 +3,8 @@
 A collection of deep learning projects built using TensorFlow, Keras,
 Artificial Neural Networks (ANN), and Recurrent Neural Networks (RNN).
 
+![Deep Learning Projects](./project.png)
+
 ## 🚀 Projects
 
 ### 1. Customer Churn Prediction — ANN
