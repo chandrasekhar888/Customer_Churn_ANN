@@ -17,7 +17,7 @@ likely to churn.
 - Artificial Neural Network
 - Streamlit
 
-🌐 **Live Demo:** https://customer-churn-ann.streamlit.app
+🌐 **Live Demo:** https://customer-churn-ann-ap.streamlit.app/
 
 📂 [View ANN Project](./DeepLearningProject/annclassification)
 
@@ -36,7 +36,7 @@ review is positive or negative.
 - IMDb Dataset
 - Streamlit
 
-🌐 **Live Demo:** https://imdb-sentiment-rnn.streamlit.app
+🌐 **Live Demo:** https://imdb-sentiment-rnn-ap.streamlit.app/
 
 📂 [View RNN Project](./DeepLearningProject/rnnclassification)
 
